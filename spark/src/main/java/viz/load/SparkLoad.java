@@ -141,8 +141,65 @@ public class SparkLoad {
       .save();
   }
 
+  private static void importPatientFieldsToDB(SparkSession spark, Dataset<Row> outputData, String colPrefix) {
+    String[] fieldnames = outputData.schema().fieldNames();
+    List<String> fieldnamelist = new ArrayList<String>(Arrays.asList(fieldnames));
+    for (Iterator<String> ii = fieldnamelist.iterator(); ii.hasNext(); ) {
+      String fieldname = ii.next();
+      if ("patientid".equals(fieldname) || "patientlinkid".equals(fieldname) || "quartername".equals(fieldname)) {
+        ii.remove();
+      } else if (colPrefix != null && fieldname.startsWith(colPrefix+"_")) {
+        ii.remove();
+      } else if (colPrefix == null && (!fieldname.startsWith("diag_") && !fieldname.startsWith("imm_") && !fieldname.startsWith("mbs_") && !fieldname.startsWith("meas_") && !fieldname.startsWith("med_"))) {
+        ii.remove();
+      }
+    }
+    // System.out.println(fieldnamelist);
+    outputData = outputData.drop(fieldnamelist.toArray(new String[0]));
+    outputData.schema().printTreeString();
+    outputData.write()
+      .format("jdbc")
+      .option("url","jdbc:postgresql:viz4socialgood")
+      .option("user", "viz4socialgood")
+      .option("password", "viz4socialgood")
+      .option("dbtable", colPrefix == null ? "PATIENT_MASTER" : "PATIENT_"+colPrefix.toUpperCase()+"_METRICS")
+      .mode(SaveMode.Overwrite)
+      .save();
+  }
+
+  private static void importPatientToDB(SparkSession spark, String file) {
+    Dataset<Row> csvData = spark.read()
+	                        .option("header","true")
+	                        .option("inferSchema","true")
+				.csv(file).cache();
+    // System.out.println(csvData.count());
+    // csvData.schema().printTreeString();
+    Dataset<Row> outputData = csvData;
+    for (String ofn : outputData.schema().fieldNames()) {
+      String nfn = ofn.toLowerCase().replaceAll("[^a-zA-Z0-9]","_");
+      outputData = outputData.withColumnRenamed(ofn,nfn);
+    }
+    importPatientFieldsToDB(spark,outputData,null);
+    importPatientFieldsToDB(spark,outputData,"diag");
+    importPatientFieldsToDB(spark,outputData,"imm");
+    importPatientFieldsToDB(spark,outputData,"mbs");
+    importPatientFieldsToDB(spark,outputData,"meas");
+    importPatientFieldsToDB(spark,outputData,"med");
+    /*
+    outputData.schema().printTreeString();
+    outputData.write()
+      .format("jdbc")
+      .option("url","jdbc:postgresql:viz4socialgood")
+      .option("user", "viz4socialgood")
+      .option("password", "viz4socialgood")
+      .option("dbtable", name)
+      .mode(SaveMode.Overwrite)
+      .save();
+    */
+  }
+
   public static void testFile() throws Exception {
-    // String file1 = "/home/jlowe000/repos/sunnystreet/data/sunny-street-patients.csv";
+    String file1 = "/home/jlowe000/repos/sunnystreet/data/sunny-street-patients.csv";
     // String file2 = "/home/jlowe000/repos/sunnystreet/data/sunny-street-patient-diagnosis.csv";
     // String file3 = "/home/jlowe000/repos/sunnystreet/data/sunny-street-patient-medicine.csv";
     // String file4 = "/home/jlowe000/repos/sunnystreet/data/sunny-street-patient-immunisation.csv";
@@ -150,12 +207,12 @@ public class SparkLoad {
     String file6 = "/home/jlowe000/repos/sunnystreet/data/sunny-street-tandm.csv";
     SparkSession spark = SparkSession.builder().appName("Simple Application").config("spark.master","local").getOrCreate();
 
-    // importFileToDB(spark,file1,"PATIENTS","");
+    importPatientToDB(spark,file1);
     // importFileToDB(spark,file2,"PATIENT_DIAGNOSIS","");
     // importFileToDB(spark,file3,"PATIENT_MEDICINE","");
     // importFileToDB(spark,file4,"PATIENT_IMMUNISATION","");
     // importFileToDB(spark,file5,"SHIFT_MEASURES","");
-    importTANDMToDB(spark,file6);
+    // importTANDMToDB(spark,file6);
 
     spark.stop();
   }
