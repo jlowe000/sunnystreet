@@ -114,6 +114,33 @@ public class SparkLoad {
       .save();
   }
 
+  private static void importFileAggToDB(SparkSession spark, String file, String name) {
+    Dataset<Row> csvData = spark.read()
+	                        .option("header","true")
+	                        .option("inferSchema","true")
+				.csv(file).cache();
+    System.out.println(csvData.count());
+    csvData.schema().printTreeString();
+    Dataset<Row> outputData = csvData;
+    for (String ofn : outputData.schema().fieldNames()) {
+      String nfn = ofn.toLowerCase().replaceAll("[^a-zA-Z0-9]","_");
+      outputData = outputData.withColumnRenamed(ofn,nfn);
+    }
+    outputData.schema().printTreeString();
+    outputData.filter(name.toLowerCase()+"_indicator_value <> 0")
+	      .groupBy("patientlinkid",name.toLowerCase()+"_indicator_name",name.toLowerCase()+"_indicator_value") 
+	      .max("patientid")
+	      .withColumnRenamed("max(patientid)","patientid")
+      .write()
+      .format("jdbc")
+      .option("url","jdbc:postgresql:viz4socialgood")
+      .option("user", "viz4socialgood")
+      .option("password", "viz4socialgood")
+      .option("dbtable", "PATIENT_"+name+"_AGG")
+      .mode(SaveMode.Overwrite)
+      .save();
+  }
+
   private static void importFileToDB(SparkSession spark, String file, String name, String col, String... cols) {
     Dataset<Row> csvData = spark.read()
 	                        .option("header","true")
@@ -237,10 +264,13 @@ public class SparkLoad {
 
     // importPatientToDB(spark,file1);
     // importFileToDB(spark,file2,"PATIENT_DIAGNOSIS","");
+    importFileAggToDB(spark,file2,"DIAGNOSIS");
     // importFileToDB(spark,file3,"PATIENT_MEDICINE","");
+    importFileAggToDB(spark,file3,"MEDICINE");
     // importFileToDB(spark,file4,"PATIENT_IMMUNISATION","");
+    importFileAggToDB(spark,file4,"IMMUNISATION");
     // importShiftMeasuresToDB(spark,file5);
-    importTANDMToDB(spark,file6);
+    // importTANDMToDB(spark,file6);
 
     spark.stop();
   }
