@@ -22,6 +22,7 @@ import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.api.java.UDF1;
 import org.apache.spark.sql.functions;
 import static org.apache.spark.sql.functions.col;
+import static org.apache.spark.sql.functions.to_timestamp;
 import static org.apache.spark.sql.functions.explode;
 import static org.apache.spark.sql.functions.posexplode;
 import static org.apache.spark.sql.functions.split;
@@ -80,7 +81,9 @@ public class SparkLoad {
       csvData = csvData.withColumnRenamed(ofn,nfn);
     }
 
-    Dataset<Row> masterData = csvData.select("action","id","start_time","end_time","hour_of_day","duration_sec","duration_hhmmss","observer","observed","location");
+    Dataset<Row> masterData = csvData.select("action","id","start_time","end_time","hour_of_day","duration_sec","duration_hhmmss","observer","observed","location")
+                                     .withColumn("start_time_converted",to_timestamp(col("start_time"),"yyyy-MMM-dd HH:mm:ss"))
+                                     .withColumn("end_time_converted",to_timestamp(col("end_time"),"yyyy-MMM-dd HH:mm:ss"));
     masterData.schema().printTreeString();
     masterData.write()
       .format("jdbc")
@@ -137,6 +140,31 @@ public class SparkLoad {
       .option("user", "viz4socialgood")
       .option("password", "viz4socialgood")
       .option("dbtable", name)
+      .mode(SaveMode.Overwrite)
+      .save();
+  }
+
+  private static void importShiftMeasuresToDB(SparkSession spark, String file) {
+    Dataset<Row> csvData = spark.read()
+	                        .option("header","true")
+	                        .option("inferSchema","true")
+				.csv(file).cache();
+    System.out.println(csvData.count());
+    csvData.schema().printTreeString();
+    Dataset<Row> outputData = csvData;
+    for (String ofn : outputData.schema().fieldNames()) {
+      String nfn = ofn.toLowerCase().replaceAll("[^a-zA-Z0-9]","_");
+      outputData = outputData.withColumnRenamed(ofn,nfn);
+    }
+    outputData = outputData.withColumn("shift_report_date_converted",to_timestamp(col("shift_report_date"),"d/M/yyyy h:mm:ss a"));
+    outputData.schema().printTreeString();
+    outputData.show(1);
+    outputData.write()
+      .format("jdbc")
+      .option("url","jdbc:postgresql:viz4socialgood")
+      .option("user", "viz4socialgood")
+      .option("password", "viz4socialgood")
+      .option("dbtable", "SHIFT_MEASURES")
       .mode(SaveMode.Overwrite)
       .save();
   }
@@ -200,19 +228,19 @@ public class SparkLoad {
 
   public static void testFile() throws Exception {
     String file1 = "/home/jlowe000/repos/sunnystreet/data/sunny-street-patients.csv";
-    // String file2 = "/home/jlowe000/repos/sunnystreet/data/sunny-street-patient-diagnosis.csv";
-    // String file3 = "/home/jlowe000/repos/sunnystreet/data/sunny-street-patient-medicine.csv";
-    // String file4 = "/home/jlowe000/repos/sunnystreet/data/sunny-street-patient-immunisation.csv";
-    // String file5 = "/home/jlowe000/repos/sunnystreet/data/campfire-shift-measures.csv";
+    String file2 = "/home/jlowe000/repos/sunnystreet/data/sunny-street-patient-diagnosis.csv";
+    String file3 = "/home/jlowe000/repos/sunnystreet/data/sunny-street-patient-medicine.csv";
+    String file4 = "/home/jlowe000/repos/sunnystreet/data/sunny-street-patient-immunisation.csv";
+    String file5 = "/home/jlowe000/repos/sunnystreet/data/campfire-shift-measures.csv";
     String file6 = "/home/jlowe000/repos/sunnystreet/data/sunny-street-tandm.csv";
     SparkSession spark = SparkSession.builder().appName("Simple Application").config("spark.master","local").getOrCreate();
 
-    importPatientToDB(spark,file1);
+    // importPatientToDB(spark,file1);
     // importFileToDB(spark,file2,"PATIENT_DIAGNOSIS","");
     // importFileToDB(spark,file3,"PATIENT_MEDICINE","");
     // importFileToDB(spark,file4,"PATIENT_IMMUNISATION","");
-    // importFileToDB(spark,file5,"SHIFT_MEASURES","");
-    // importTANDMToDB(spark,file6);
+    // importShiftMeasuresToDB(spark,file5);
+    importTANDMToDB(spark,file6);
 
     spark.stop();
   }
