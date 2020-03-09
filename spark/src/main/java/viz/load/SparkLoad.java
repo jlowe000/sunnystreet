@@ -22,7 +22,10 @@ import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.api.java.UDF1;
 import org.apache.spark.sql.functions;
 import static org.apache.spark.sql.functions.col;
+import static org.apache.spark.sql.functions.when;
+import static org.apache.spark.sql.functions.to_date;
 import static org.apache.spark.sql.functions.to_timestamp;
+import static org.apache.spark.sql.functions.unix_timestamp;
 import static org.apache.spark.sql.functions.explode;
 import static org.apache.spark.sql.functions.posexplode;
 import static org.apache.spark.sql.functions.split;
@@ -183,8 +186,14 @@ public class SparkLoad {
       String nfn = ofn.toLowerCase().replaceAll("[^a-zA-Z0-9]","_");
       outputData = outputData.withColumnRenamed(ofn,nfn);
     }
-    outputData = outputData.withColumn("shift_report_date_converted",to_timestamp(col("shift_report_date"),"d/M/yyyy h:mm:ss a"));
-    outputData.schema().printTreeString();
+    outputData = outputData.withColumn("shift_report_date_converted",to_date(col("shift_report_date"),"d/M/yyyy h:mm:ss a"));
+    outputData = outputData.withColumn("rd1",to_timestamp(col("shift_report_date"),"d/M/yyyy h:mm:ss a"));
+    outputData = outputData.withColumn("st1",to_timestamp(col("start_time"),"30/12/1899 h:mm:ss a"));
+    outputData = outputData.withColumn("et1",to_timestamp(col("end_time"),"30/12/1899 h:mm:ss a"));
+    Dataset<Row> dtData = outputData.selectExpr("shift_report_id", "rd1", "to_timestamp(unix_timestamp(shift_report_date_converted)+unix_timestamp(st1)+36000) as st2", "to_timestamp(unix_timestamp(shift_report_date_converted)+unix_timestamp(et1)+36000) as et2", "to_timestamp(unix_timestamp(shift_report_date_converted)+unix_timestamp(st1)+36000-86400) as st3", "to_timestamp(unix_timestamp(shift_report_date_converted)+unix_timestamp(et1)+36000-86400) as et3"); // Allowing for 10 GMT locale offset
+    Dataset<Row> dtsData = dtData.select(col("shift_report_id").alias("srid"),when(col("rd1").lt(col("st2")),col("st3")).otherwise(col("st2")).alias("start_time_converted"),when(col("rd1").lt(col("et2")),col("et3")).otherwise(col("et2")).alias("end_time_converted"));
+    outputData = outputData.join(dtsData,outputData.col("shift_report_id").equalTo(dtsData.col("srid")));
+    outputData = outputData.drop("rd1","st1","et1","srid");
     outputData.show(1);
     outputData.write()
       .format("jdbc")
@@ -264,12 +273,12 @@ public class SparkLoad {
 
     // importPatientToDB(spark,file1);
     // importFileToDB(spark,file2,"PATIENT_DIAGNOSIS","");
-    importFileAggToDB(spark,file2,"DIAGNOSIS");
+    // importFileAggToDB(spark,file2,"DIAGNOSIS");
     // importFileToDB(spark,file3,"PATIENT_MEDICINE","");
-    importFileAggToDB(spark,file3,"MEDICINE");
+    // importFileAggToDB(spark,file3,"MEDICINE");
     // importFileToDB(spark,file4,"PATIENT_IMMUNISATION","");
-    importFileAggToDB(spark,file4,"IMMUNISATION");
-    // importShiftMeasuresToDB(spark,file5);
+    // importFileAggToDB(spark,file4,"IMMUNISATION");
+    importShiftMeasuresToDB(spark,file5);
     // importTANDMToDB(spark,file6);
 
     spark.stop();
