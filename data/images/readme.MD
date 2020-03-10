@@ -32,7 +32,7 @@
 ![image](/data/images/sunnystreet-analysis-shiftsubstanceconversation.png "")
 ![image](/data/images/sunnystreet-analysis-shiftnursepractitionerconsult.png "")
 ![image](/data/images/sunnystreet-analysis-shiftsuicideconversation.png "")
-# General analysis from the patient data comparing chronic disease and the othee top 4 capture indicators
+# General analysis from the patient data comparing chronic disease and the other top 4 capture indicators
 ![image](/data/images/sunnystreet-analysis-chronicdisease_vs_anxiety.png "")
 ![image](/data/images/sunnystreet-analysis-chronicdisease_vs_depression.png "")
 ![image](/data/images/sunnystreet-analysis-chronicdisease_vs_drugabuse.png "")
