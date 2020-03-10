@@ -26,6 +26,7 @@
             <configuration>
               <executable>java</executable>
               <arguments>
+		<argument>-Dlog4j.configuration=file:/home/jlowe000/repos/sunnystreet/spark/src/test/resources/log4j.properties</argument>
                 <argument>-classpath</argument>
                 <classpath/>
                 <argument>viz.load.SparkLoad</argument>  

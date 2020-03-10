@@ -29,6 +29,7 @@ import static org.apache.spark.sql.functions.unix_timestamp;
 import static org.apache.spark.sql.functions.explode;
 import static org.apache.spark.sql.functions.posexplode;
 import static org.apache.spark.sql.functions.split;
+import static org.apache.spark.sql.functions.count;
 import org.apache.spark.sql.types.StructType;
 import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
@@ -216,6 +217,15 @@ public class SparkLoad {
         ii.remove();
       } else if (colPrefix == null && (!fieldname.startsWith("diag_") && !fieldname.startsWith("imm_") && !fieldname.startsWith("mbs_") && !fieldname.startsWith("meas_") && !fieldname.startsWith("med_"))) {
         ii.remove();
+      } else {
+	/*
+        Dataset<Row> countData = outputData.select(count(fieldname));
+	Row[] rows = (Row[])countData.collect();
+	if ((Long)rows[0].get(0) < new Long(2)) {
+	  System.out.println("removing data as it has less than 2 values: "+fieldname+","+rows[0].get(0));
+	  ii.remove();
+	}
+	*/
       }
     }
     // System.out.println(fieldnamelist);
@@ -271,14 +281,14 @@ public class SparkLoad {
     String file6 = "/home/jlowe000/repos/sunnystreet/data/sunny-street-tandm.csv";
     SparkSession spark = SparkSession.builder().appName("Simple Application").config("spark.master","local").getOrCreate();
 
-    // importPatientToDB(spark,file1);
+    importPatientToDB(spark,file1);
     // importFileToDB(spark,file2,"PATIENT_DIAGNOSIS","");
     // importFileAggToDB(spark,file2,"DIAGNOSIS");
     // importFileToDB(spark,file3,"PATIENT_MEDICINE","");
     // importFileAggToDB(spark,file3,"MEDICINE");
     // importFileToDB(spark,file4,"PATIENT_IMMUNISATION","");
     // importFileAggToDB(spark,file4,"IMMUNISATION");
-    importShiftMeasuresToDB(spark,file5);
+    // importShiftMeasuresToDB(spark,file5);
     // importTANDMToDB(spark,file6);
 
     spark.stop();
