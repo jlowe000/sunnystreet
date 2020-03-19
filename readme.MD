@@ -13,3 +13,5 @@ The output of the analysis will not be here but as a blog (or two) to describe t
 * For a youtube version of the pitch - see https://www.youtube.com/watch?v=xK8fWets7Gk
 * For an analysis / outcome version - see https://www.linkedin.com/pulse/from-certain-point-view-jason-lowe/
 * For a tech version - see https://redthunder.blog/2020/03/17/the-tech-behind-the-social-good/
+* A quick link to the visualisations (as images) captured in this project - [/data/images/readme.MD](/data/images/readme.MD)
+* A quick link to the pitch deck for the pitch night (March 19th) - [/data/images/pitch.MD](/data/images/pitch.MD)
