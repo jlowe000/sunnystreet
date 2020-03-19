@@ -13,10 +13,13 @@
 **Purpose: Present finding of the Datathon as per zoom**<br>
 
 ## Problem Statement<br>
+<br>
 
 > How might we help Sunny Street and their community to scale the number of conversations (whilst maintaining the value of the conversations)?
+<br>
 
 ## Hypotheticals<br>
+<br>
 
 > *Why are there people being turned away?*<br>
 
@@ -25,8 +28,10 @@
 > *Why are there increased numbers of people being turned away in Brisbane? And more so at the Wesley Mission?*<br>
 
 ![Patients being turned away - more focus](sunnystreet-presentation-002.png)<br>
+<br>
 
 ## Assessments (Based Upon Data)<br>
+<br>
 
 > *When looking at a specific camp site shift, there was no captured data.*<br>
 
@@ -35,8 +40,10 @@
 > *When looking at a different camp site shift, there is captured data but a smaller number of patients turned away.*<br>
 
 ![Sample data - 002](sunnystreet-presentation-004.png)<br>
+<br>
 
 ## Experiments (Based Upon A Valued Conversations)<br>
+<br>
 
 > *We can see more about the conversations that are being had. Though we don't have a gauge of value or sentiment.*<br>
 
@@ -49,3 +56,4 @@
 > *We can see the depth of conversation (in time) and explore how staff and volunteer numbers (including where and when).*<br>
 
 ![Sample data - 002](sunnystreet-presentation-007.png)<br>
+<br>
