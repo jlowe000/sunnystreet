@@ -50,3 +50,15 @@
 ![image](/data/images/random-analysis-010.png "")
 ![image](/data/images/random-analysis-011.png "")
 ![image](/data/images/random-analysis-012.png "")
+# Visualisations that was used for the pitch night
+![image](/data/images/sunnystreet-presentation-001.png "")
+![image](/data/images/sunnystreet-presentation-002.png "")
+![image](/data/images/sunnystreet-presentation-003.png "")
+![image](/data/images/sunnystreet-presentation-004.png "")
+![image](/data/images/sunnystreet-presentation-005.png "")
+![image](/data/images/sunnystreet-presentation-006.png "")
+![image](/data/images/sunnystreet-presentation-007.png "")
+# Visualisations that was used for the blog
+![image](/data/images/sunnystreet-writeup-001.png "")
+![image](/data/images/sunnystreet-writeup-002.png "")
+![image](/data/images/sunnystreet-writeup-003.png "")
